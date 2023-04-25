@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.ContractObjectMapper">
+
+	<delete id="deleteByMainId" parameterType="java.lang.String">
+		DELETE 
+		FROM  contract_object 
+		WHERE
+			 contract_id = #{mainId} 	</delete>
+	
+	<select id="selectByMainId" parameterType="java.lang.String" resultType="org.jeecg.modules.srm.entity.ContractObject">
+		SELECT * 
+		FROM  contract_object
+		WHERE
+			 contract_id = #{mainId}
+		and del_flag = '0'
+	 </select>
+
+	<select id="getContractDetailList" resultType="org.jeecg.modules.srm.entity.ContractObject">
+		SELECT
+			co.*,
+			co.qty - co.to_send_qty as send_qty,
+			co.contract_price as price,
+			co.contract_price_tax as price_tax,
+			co.contract_amount as amount,
+			co.contract_amount_tax as amount_tax,
+			co.plan_delivery_date as lead_time,
+			co.prod_spec_type as spe_type
+		FROM
+			contract_object co
+		where co.contract_id = #{query.id}
+		  and co.del_flag = '0'
+	</select>
+
+	<select id="listByDetailList" resultType="org.jeecg.modules.srm.entity.ContractObject">
+		select
+		    co.*,
+			cb.contract_currency
+		from
+		    contract_object_qty co
+			inner join contract_base cb on co.contract_id = cb.id
+		where co.del_flag = '0'
+		and co.contract_id = #{query.contractId}
+		<if test="query.ptype == 'stk'">
+
+			<if test="query.id != null and query.id != ''">
+				and (co.to_send_qty = 0 or co.id in
+				<foreach collection="query.id.split(',')" item="item" open="(" close=")" separator="," >
+					#{item}
+				</foreach>
+				    )
+			</if>
+			<if test="query.id == null or query.id == ''">
+				and co.to_send_qty = 0
+			</if>
+		</if>
+		<if test="query.ptype == 'invoice'">
+			and co.invoice_rate &lt; 100
+		</if>
+		<if test="query.prodCode != null and query.prodCode != ''">
+			AND co.prod_code LIKE concat(concat('%',#{query.prodCode}),'%')
+		</if>
+		<if test="query.prodName != null and query.prodName != ''">
+			AND co.prod_name LIKE concat(concat('%',#{query.prodName}),'%')
+		</if>
+		<if test="query.prodSpecType != null and query.prodSpecType != ''">
+			AND co.prod_spec_type LIKE concat(concat('%',#{query.prodSpecType}),'%')
+		</if>
+		<if test="query.sort != null and query.sort1 == null">
+			AND co.sort >= #{query.sort}
+		</if>
+		<if test="query.sort != null and query.sort1 != null">
+			AND co.sort between #{query.sort} and #{query.sort1}
+		</if>
+        order by co.prod_code,(co.sort + 0)
+	</select>
+</mapper>

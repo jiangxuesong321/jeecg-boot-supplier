@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.PurchaseRequestMainMapper">
+    <select id="getPurchaseRequest" resultType="org.jeecg.modules.srm.entity.PurchaseRequestMain">
+        SELECT
+            prm.req_type
+        FROM
+        contract_base cb
+        left join bidding_main bm on cb.request_id = bm.id
+        left join inquiry_list il on cb.request_id = il.id
+        left join purchase_request_main prm on ifnull(bm.request_id,il.request_id) = prm.id
+        where cb.id = #{contractId}
+    </select>
+</mapper>

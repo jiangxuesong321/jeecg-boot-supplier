@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.BiddingRecordMapper">
+
+	<delete id="deleteByMainId" parameterType="java.lang.String">
+		DELETE 
+		FROM  bidding_record 
+		WHERE
+			 bidding_id = #{mainId} 	</delete>
+	
+	<select id="selectByMainId" parameterType="java.lang.String" resultType="org.jeecg.modules.srm.entity.BiddingRecord">
+		SELECT * 
+		FROM  bidding_record
+		WHERE
+			 bidding_id = #{mainId} 	</select>
+
+	<select id="queryRecordList" resultType="org.jeecg.modules.srm.entity.BiddingRecord">
+		SELECT
+			br.prod_name,
+			br.prod_code,
+			br.id,
+			br.qty,
+			br.spe_type,
+			br.unit_id,
+			br.prod_id,
+			bm.model,
+			bqr.capacity,
+			bqr.price,
+			bqr.amount,
+			bqr.price_tax,
+			bqr.amount_tax,
+			bqr.lead_time
+		FROM
+			bidding_record br
+			left join bas_material bm on br.prod_id = bm.id
+			left join bidding_quote_record bqr on br.id = bqr.record_id and bqr.del_flag = '0'
+		where br.del_flag = '0'
+		  and br.bidding_id = #{id}
+	</select>
+</mapper>

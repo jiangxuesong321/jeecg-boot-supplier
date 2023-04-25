@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.InquiryRecordMapper">
+
+	<delete id="deleteByMainId" parameterType="java.lang.String">
+		DELETE 
+		FROM  inquiry_record 
+		WHERE
+			 inquiry_id = #{mainId} 	</delete>
+	
+	<select id="selectByMainId" parameterType="java.lang.String" resultType="org.jeecg.modules.srm.entity.InquiryRecord">
+		SELECT * 
+		FROM  inquiry_record
+		WHERE
+			 inquiry_id = #{mainId} 	</select>
+
+
+	<select id="queryPageList" resultType="org.jeecg.modules.srm.entity.InquiryRecord">
+		SELECT
+			ir.id,
+			ir.inquiry_id,
+			ir.prod_id,
+			ir.to_record_id,
+		    <if test='query.isBargin == "1"'>
+				iss.inquiry_qty as qty,
+			</if>
+			<if test='query.isBargin != "1"'>
+				ir.qty as qty,
+			</if>
+			ir.unit_id,
+			ir.lead_time,
+			ir.back_reason,
+			ir.prod_name,
+			ir.spe_type,
+			ir.prod_code,
+			ir.price,
+			ir.amount,
+			ir.price_tax,
+			ir.amount_tax,
+			ir.is_contract,
+			case when il.quotation_deadline >= DATE_FORMAT(NOW(),'%Y-%m-%d') then '1'
+			else '0' end is_show,
+			il.create_time,
+			il.inquiry_code,
+		    il.inquirer,
+		    il.inquiry_name,
+		    il.remark,
+		    il.quotation_deadline,
+		    il.currency,
+			il.inquiry_status,
+			iss.supplier_id,
+			iss.status,
+			iss.is_bargin,
+			prm.req_type,
+		    prm.comment as reqComment,
+		    il.comment as zbComment,
+		    il.attachment as zbAttachment
+		FROM
+			inquiry_record ir
+			left join inquiry_list il on ir.inquiry_id = il.id
+			left join inquiry_supplier iss on ir.id = iss.record_id
+			left join purchase_request_main prm on il.request_id = prm.id
+		WHERE
+			ir.del_flag = '0'
+		  	and iss.supplier_id = #{query.suppId}
+		  	and ir.status in
+			<foreach collection="query.status.split(',')" item="item" open="(" close=")" separator="," >
+				#{item}
+			</foreach>
+			<if test="query.inquiryCode != null and query.inquiryCode != ''">
+				AND il.inquiry_code LIKE concat(concat('%',#{query.inquiryCode}),'%')
+			</if>
+			<if test="query.prodName != null and query.prodName != ''">
+				AND ir.prod_name LIKE concat(concat('%',#{query.prodName}),'%')
+			</if>
+			<if test="query.prodCode != null and query.prodCode != ''">
+				AND ir.prod_code LIKE concat(concat('%',#{query.prodCode}),'%')
+			</if>
+			<if test="query.isBargin != null and query.isBargin != ''">
+				AND iss.is_bargin = #{query.isBargin}
+			</if>
+		order by il.create_time desc
+	</select>
+
+	<select id="getRecordById" resultType="org.jeecg.modules.srm.entity.InquiryRecord">
+		SELECT
+			ir.prod_name,
+			ir.prod_code,
+			ir.id,
+			ir.qty,
+			ir.spe_type,
+			ir.unit_id,
+			ir.prod_id,
+			bm.model,
+			sq.order_price as price,
+			sq.order_amount as amount,
+			sq.order_price_tax as price_tax,
+			sq.order_amount_tax as amount_tax,
+			sq.lead_time,
+			sq.capacity
+		FROM
+			inquiry_record ir
+			left join bas_material bm on ir.prod_id = bm.id
+			left join sup_quote sq on ir.id = sq.record_id and sq.del_flag = '0'
+		where ir.id = #{id}
+	</select>
+</mapper>

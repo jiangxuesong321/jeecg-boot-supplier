@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.BiddingRecordSupplierMapper">
+    <select id="fetchBiddingList" resultType="org.jeecg.modules.srm.entity.BiddingRecordSupplier">
+        select brs.* from bidding_record_supplier brs
+        where del_flag = '0'
+        and supplier_id = #{suppId}
+        and exists (
+            select bs.bidding_id from bidding_supplier bs where status != '1'
+            and bs.bidding_id = brs.bidding_id
+            and bs.supplier_id = #{suppId}
+        )
+    </select>
+</mapper>

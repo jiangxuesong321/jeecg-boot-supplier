@@ -1,0 +1,108 @@
+package org.jeecg.modules.srm.entity;
+
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.math.BigDecimal;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.jeecgframework.poi.excel.annotation.Excel;
+import org.jeecg.common.aspect.annotation.Dict;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
+/**
+ * @Description: 专家列表
+ * @Author: jeecg-boot
+ * @Date:   2022-06-17
+ * @Version: V1.0
+ */
+@Data
+@TableName("bas_professionals")
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
+@ApiModel(value="bas_professionals对象", description="专家列表")
+public class BasProfessionals implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+	/**ID*/
+	@TableId(type = IdType.ASSIGN_ID)
+    @ApiModelProperty(value = "ID")
+    private String id;
+	/**编码*/
+	@Excel(name = "编码", width = 15)
+    @ApiModelProperty(value = "编码")
+    private String code;
+	/**名称*/
+	@Excel(name = "名称", width = 15)
+    @ApiModelProperty(value = "名称")
+    private String nickName;
+	/**描述*/
+	@Excel(name = "描述", width = 15)
+    @ApiModelProperty(value = "描述")
+    private String description;
+	/**是否启用*/
+	@Excel(name = "是否启用", width = 15)
+    @ApiModelProperty(value = "是否启用")
+    private Integer isEnabled;
+	/**创建人*/
+    @ApiModelProperty(value = "创建人")
+    private String createBy;
+	/**创建时间*/
+	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern="yyyy-MM-dd")
+    @ApiModelProperty(value = "创建时间")
+    private Date createTime;
+	/**修改人*/
+    @ApiModelProperty(value = "修改人")
+    private String updateBy;
+	/**修改时间*/
+	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern="yyyy-MM-dd")
+    @ApiModelProperty(value = "修改时间")
+    private Date updateTime;
+	/**专家角色*/
+	@Excel(name = "专家角色", width = 15)
+    @ApiModelProperty(value = "专家角色")
+    private String userPermission;
+	/**专家分类*/
+	@Excel(name = "专家分类", width = 15, dicCode = "perType")
+	@Dict(dicCode = "perType")
+    @ApiModelProperty(value = "专家分类")
+    private String userCategory;
+	/**全名*/
+	@Excel(name = "全名", width = 15)
+    @ApiModelProperty(value = "全名")
+    private String realName;
+	/**手机号*/
+	@Excel(name = "手机号", width = 15)
+    @ApiModelProperty(value = "手机号")
+    private String userTel;
+	/**微信号*/
+	@Excel(name = "微信号", width = 15)
+    @ApiModelProperty(value = "微信号")
+    private String wechatNo;
+	/**职位*/
+	@Excel(name = "职位", width = 15)
+    @ApiModelProperty(value = "职位")
+    private String position;
+	/**采购组编码*/
+	@Excel(name = "采购组编码", width = 15)
+    @ApiModelProperty(value = "采购组编码")
+    private String purCode;
+	/**邮箱*/
+	@Excel(name = "邮箱", width = 15)
+    @ApiModelProperty(value = "邮箱")
+    private String email;
+	/**部门*/
+	@Excel(name = "部门", width = 15, dictTable = "sys_depart", dicText = "depart_name", dicCode = "id")
+	@Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "id")
+    @ApiModelProperty(value = "部门")
+    private String department;
+}

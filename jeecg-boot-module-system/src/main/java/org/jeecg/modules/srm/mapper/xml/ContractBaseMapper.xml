@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.ContractBaseMapper">
+    <select id="fetchPayList" resultType="map">
+        SELECT
+            round( ifnull( ppp.pay_amount, 0 ) / cb.contract_amount_tax * 100, 2 ) AS payProcess,
+            cb.contract_name as contractName,
+            cb.contract_number as contractNumber
+        FROM
+            contract_base cb
+            LEFT JOIN (
+                SELECT
+                    sum( ppa.pay_amount_other ) AS pay_amount,
+                    ppa.contract_id
+                FROM
+                    pur_pay_apply ppa
+                WHERE
+                    ppa.apply_status = '30'
+                  AND ppa.del_flag = '0'
+                GROUP BY
+                    ppa.contract_id
+            ) ppp ON cb.id = ppp.contract_id
+        WHERE
+            cb.del_flag = '0'
+          AND cb.contract_status = '4'
+          AND cb.contract_second_party_id = #{query.contractSecondPartyId}
+        <if test="query.id != null and query.id != ''">
+            and cb.id = #{query.id}
+        </if>
+        order by cb.create_time
+        limit 4
+    </select>
+
+    <select id="fetchEqpList" resultType="map">
+        SELECT
+            co.prod_name as prodName,
+            sum(co.qty) as requireQty,
+            sum(ifnull(stk.qty,0)) as arrivedQty,
+            sum(co.qty) - sum(ifnull(stk.qty,0)) as ongoingQty
+        FROM
+            contract_object co
+            inner join contract_base cb on co.contract_id = cb.id
+            left join (
+            select order_id,prod_code,sum(qty) as qty from stk_io_bill_entry sibe
+            where sibe.del_flag = '0'
+              and EXISTS (select sib.id from stk_io_bill sib where sibe.mid = sib.id and sib.status = '1')
+            GROUP BY order_id,prod_code
+            ) stk on co.contract_id = stk.order_id and co.prod_code = stk.prod_code
+        where cb.contract_status = '4'
+          and co.del_flag = '0'
+          and cb.contract_type = '0'
+          and cb.contract_second_party_id = #{query.supplierId}
+        group by co.prod_code
+    </select>
+
+    <select id="fetchContractReport" resultType="org.jeecg.modules.srm.vo.ContractObjectVo">
+        SELECT
+        co.prod_code,
+        co.prod_name,
+        co.prod_spec_type,
+        co.qty,
+        co.contract_price_tax,
+        co.contract_amount_tax,
+        cb.contract_name,
+        cb.contract_number,
+        cb.contract_sign_date,
+        cb.contract_currency,
+        ppa.pay_rate as pay_rate,
+        ppa.pay_method as pay_method,
+        ppa.pay_amount as pay_amount,
+        ppi.invoice_amount as invoice_amount,
+        ppi.invoice_no as invoice_no,
+        sibe.qty as sqty
+        FROM
+        contract_object co
+        inner join contract_base cb on co.contract_id = cb.id
+        left join (
+        select
+        tmp.record_id,
+        tmp.contract_id,
+        GROUP_CONCAT(tmp.pay_rate SEPARATOR ';') as pay_rate,
+        GROUP_CONCAT(tmp.pay_method SEPARATOR ';') as pay_method,
+        GROUP_CONCAT(tmp.pay_amount SEPARATOR ';') as pay_amount
+        from
+        (SELECT
+        ppa.contract_id,
+        coq.record_id,
+        round(ppa.pay_rate,0)  as pay_rate,
+        sdi.item_text as pay_method,
+        sum(round(coq.contract_price_tax * ppa.pay_rate / 100,2))  as pay_amount
+        FROM
+        pur_pay_apply ppa
+        inner join pur_pay_apply_detail ppad on ppa.id = ppad.apply_id
+        inner join contract_object_qty coq on ppad.bill_detail_id = coq.id
+        left join sys_dict_item sdi on ppa.pay_method = sdi.item_value and sdi.dict_id = (select id from sys_dict where dict_code = 'payMethod')
+        where ppa.apply_status = '30'
+        and ppad.del_flag = '0'
+        GROUP BY
+        ppa.id,coq.record_id) tmp
+        group by tmp.contract_id,tmp.record_id
+
+        ) ppa on co.id = ppa.record_id and co.contract_id = ppa.contract_id
+        left join (
+        select
+        tmp.record_id,
+        tmp.contract_id,
+        GROUP_CONCAT(tmp.invoice_amount SEPARATOR';') as invoice_amount,
+        GROUP_CONCAT(tmp.invoice_no SEPARATOR';') as invoice_no
+        from (
+        SELECT
+        ppi.contract_id,
+        coq.record_id,
+        sum(ppid.contract_amount_tax) as invoice_amount,
+        ppi.invoice_no as invoice_no
+        FROM
+        purchase_pay_inovice ppi
+        INNER JOIN purchase_pay_invoice_detail ppid ON ppi.id = ppid.invoice_id
+        INNER JOIN contract_object_qty coq on ppid.bill_detail_id = coq.id
+        where ppid.del_flag = '0'
+        group by ppi.id,coq.record_id
+        ) tmp
+        group by tmp.contract_id,tmp.record_id
+        ) ppi on co.id = ppi.record_id and co.contract_id = ppi.contract_id
+        left join (
+        select sibe.order_id,sibe.prod_code,sum(qty) as qty from stk_io_bill_entry sibe
+        where sibe.del_flag = '0'
+        group by sibe.order_id,sibe.prod_code
+        ) sibe on sibe.order_id = co.contract_id and sibe.prod_code = co.prod_code
+        where cb.contract_status = '4'
+        and cb.contract_second_party_id = #{query.contractSecondPartyId}
+        <if test="query.contractNumber != null and query.contractNumber != ''">
+            AND cb.contract_number LIKE concat(concat('%',#{query.contractNumber}),'%')
+        </if>
+        <if test="query.contractName != null and query.contractName != ''">
+            AND cb.contract_name LIKE concat(concat('%',#{query.contractName}),'%')
+        </if>
+        <if test="query.prodName != null and query.prodName != ''">
+            AND co.prod_name LIKE concat(concat('%',#{query.prodName}),'%')
+        </if>
+    </select>
+
+    <select id="exportContractReport" resultType="org.jeecg.modules.srm.vo.ContractObjectVo">
+        SELECT
+        co.prod_code,
+        co.prod_name,
+        co.prod_spec_type,
+        co.qty,
+        co.contract_price_tax,
+        co.contract_amount_tax,
+        cb.contract_name,
+        cb.contract_number,
+        cb.contract_sign_date,
+        cb.contract_currency,
+        ppa.pay_rate as pay_rate,
+        ppa.pay_method as pay_method,
+        ppa.pay_amount as pay_amount,
+        ppi.invoice_amount as invoice_amount,
+        ppi.invoice_no as invoice_no,
+        sibe.qty as sqty
+        FROM
+        contract_object co
+        inner join contract_base cb on co.contract_id = cb.id
+        left join (
+        select
+        tmp.record_id,
+        tmp.contract_id,
+        GROUP_CONCAT(tmp.pay_rate SEPARATOR ';') as pay_rate,
+        GROUP_CONCAT(tmp.pay_method SEPARATOR ';') as pay_method,
+        GROUP_CONCAT(tmp.pay_amount SEPARATOR ';') as pay_amount
+        from
+        (SELECT
+        ppa.contract_id,
+        coq.record_id,
+        round(ppa.pay_rate,0)  as pay_rate,
+        sdi.item_text as pay_method,
+        sum(round(coq.contract_price_tax * ppa.pay_rate / 100,2))  as pay_amount
+        FROM
+        pur_pay_apply ppa
+        inner join pur_pay_apply_detail ppad on ppa.id = ppad.apply_id
+        inner join contract_object_qty coq on ppad.bill_detail_id = coq.id
+        left join sys_dict_item sdi on ppa.pay_method = sdi.item_value and sdi.dict_id = (select id from sys_dict where dict_code = 'payMethod')
+        where ppa.apply_status = '30'
+        and ppad.del_flag = '0'
+        GROUP BY
+        ppa.id,coq.record_id) tmp
+        group by tmp.contract_id,tmp.record_id
+
+        ) ppa on co.id = ppa.record_id and co.contract_id = ppa.contract_id
+        left join (
+        select
+        tmp.record_id,
+        tmp.contract_id,
+        GROUP_CONCAT(tmp.invoice_amount SEPARATOR';') as invoice_amount,
+        GROUP_CONCAT(tmp.invoice_no SEPARATOR';') as invoice_no
+        from (
+        SELECT
+        ppi.contract_id,
+        coq.record_id,
+        sum(ppid.contract_amount_tax) as invoice_amount,
+        ppi.invoice_no as invoice_no
+        FROM
+        purchase_pay_inovice ppi
+        INNER JOIN purchase_pay_invoice_detail ppid ON ppi.id = ppid.invoice_id
+        INNER JOIN contract_object_qty coq on ppid.bill_detail_id = coq.id
+        where ppid.del_flag = '0'
+        group by ppi.id,coq.record_id
+        ) tmp
+        group by tmp.contract_id,tmp.record_id
+        ) ppi on co.id = ppi.record_id and co.contract_id = ppi.contract_id
+        left join (
+        select sibe.order_id,sibe.prod_code,sum(qty) as qty from stk_io_bill_entry sibe
+        where sibe.del_flag = '0'
+        group by sibe.order_id,sibe.prod_code
+        ) sibe on sibe.order_id = co.contract_id and sibe.prod_code = co.prod_code
+        where cb.contract_status = '4'
+        and cb.contract_second_party_id = #{query.contractSecondPartyId}
+        <if test="query.contractNumber != null and query.contractNumber != ''">
+            AND cb.contract_number LIKE concat(concat('%',#{query.contractNumber}),'%')
+        </if>
+        <if test="query.contractName != null and query.contractName != ''">
+            AND cb.contract_name LIKE concat(concat('%',#{query.contractName}),'%')
+        </if>
+        <if test="query.prodName != null and query.prodName != ''">
+            AND co.prod_name LIKE concat(concat('%',#{query.prodName}),'%')
+        </if>
+        group by co.contract_id,co.prod_code
+    </select>
+
+    <select id="fetchContractAmount" resultType="map">
+        SELECT
+            contract_currency as currency,
+            sum( contract_amount_tax ) AS amount
+        FROM
+            contract_base
+        where contract_status = '4'
+          and del_flag = '0'
+          and (main_id is null or is_sag = '1')
+          and contract_second_party_id = #{suppId}
+        GROUP BY
+            contract_currency
+    </select>
+
+    <select id="fetchPayAmount" resultType="map">
+        SELECT
+            cb.contract_currency as currency,
+            sum(ppa.pay_amount) as amount
+        FROM
+            pur_pay_apply ppa
+            inner join contract_base cb on ppa.contract_id = cb.id
+        where ppa.del_flag = '0'
+          and cb.contract_second_party_id = #{suppId}
+        group by cb.contract_currency
+    </select>
+
+    <select id="fetchInvoiceAmount" resultType="map">
+        SELECT
+            ppi.currency,
+            sum(ppi.invoice_amount_tax) as amount
+        FROM
+            purchase_pay_inovice ppi
+            inner join contract_base cb on ppi.contract_id = cb.id
+        where ppi.del_flag = '0'
+          and cb.contract_second_party_id = #{suppId}
+        group by ppi.currency
+    </select>
+
+    <select id="fetchContractAmountRmb" resultType="decimal">
+        SELECT
+            sum( contract_amount_tax_local ) AS amount
+        FROM
+            contract_base
+        where contract_status = '4'
+          and del_flag = '0'
+          and (main_id is null or is_sag = '1')
+          and contract_second_party_id = #{suppId}
+    </select>
+
+    <select id="fetchPayAmountRmb" resultType="decimal">
+        SELECT
+            sum(ppa.pay_amount) as amount
+        FROM
+            pur_pay_apply ppa
+            inner join contract_base cb on ppa.contract_id = cb.id
+        where ppa.del_flag = '0'
+          and ppa.apply_status = '30'
+          and cb.contract_second_party_id = #{suppId}
+    </select>
+
+    <select id="fetchOnGoingContract" resultType="integer">
+        SELECT
+            count(DISTINCT contract_id) as num
+        FROM
+            contract_object_qty coq
+        where coq.del_flag = '0'
+            and pay_rate &lt; 100
+            and exists (select cb.id from contract_base cb where coq.contract_id = cb.id and cb.del_flag = '0' and cb.contract_second_party_id = #{suppId})
+    </select>
+
+    <select id="fetchCompleteContract" resultType="integer">
+        SELECT
+            count(DISTINCT contract_id) as num
+        FROM
+            contract_object_qty coq
+        where coq.del_flag = '0'
+          and pay_rate = 100
+          and exists (select cb.id from contract_base cb where coq.contract_id = cb.id and cb.del_flag = '0' and cb.contract_second_party_id = #{suppId})
+    </select>
+</mapper>

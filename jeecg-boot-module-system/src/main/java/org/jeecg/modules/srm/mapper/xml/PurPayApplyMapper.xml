@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.PurPayApplyMapper">
+    <update id="updateInvoiceAmount">
+        UPDATE
+            purchase_apply_invoice pai,
+            purchase_pay_inovice ppi
+        set ppi.has_invoice_amount = ppi.has_invoice_amount - pai.invoice_amount,
+            ppi.has_invoice_amount_tax = ppi.has_invoice_amount_tax - pai.invoice_amount_tax,
+            ppi.has_invoice_amount_local = ppi.has_invoice_amount_local - pai.invoice_amount_local,
+            ppi.has_invoice_amount_tax_local = ppi.has_invoice_amount_tax_local - pai.invoice_amount_tax_local,
+            ppi.is_used = '0'
+        where pai.invoice_id = ppi.id
+          and pai.apply_id = #{id}
+    </update>
+</mapper>

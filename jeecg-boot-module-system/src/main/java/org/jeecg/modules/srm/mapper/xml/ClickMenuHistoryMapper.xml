@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.ClickMenuHistoryMapper">
+    <select id="queryList" resultType="org.jeecg.modules.srm.entity.ClickMenuHistory">
+        select
+        distinct
+        url,
+        name
+        from click_menu_history
+        where del_flag = '0'
+        and username = #{query.username}
+        and name != '首页'
+        order by create_time desc
+        limit 3
+    </select>
+</mapper>

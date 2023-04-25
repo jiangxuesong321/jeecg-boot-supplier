@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.BiddingMainMapper">
+    <select id="queryPageList" resultType="org.jeecg.modules.srm.entity.BiddingMain">
+        SELECT
+        bm.*,
+        case when DATE_FORMAT(NOW(),'%Y-%m-%d') &lt;= bidding_deadline then '1'
+        else '0' end is_action,
+        pb.proj_name,
+        pb.proj_code,
+        prm.req_type,
+        case when bm.bidding_status = '1' then '01'
+             when bm.bidding_status = '4' then '04'
+        else bs.status end status,
+        bm.comment as biddingDescription,
+        prm.comment as reqComment
+        FROM
+        bidding_main bm
+        left join purchase_request_main prm on bm.request_id = prm.id
+        left join proj_base pb on prm.project_id = pb.id
+        left join bidding_supplier bs on bm.id = bs.bidding_id
+        where bm.del_flag = '0'
+        and bs.supplier_id = #{query.suppId}
+        and bs.del_flag = '0'
+        <if test="query.biddingStatus != null and query.biddingStatus != '' and query.biddingStatus != 'all'">
+            AND bm.bidding_status in
+            <foreach collection="query.biddingStatus.split(',')" item="item" open="(" close=")" separator="," >
+                #{item}
+            </foreach>
+        </if>
+        <if test="query.biddingName != null and query.biddingName != ''">
+            AND bm.bidding_name LIKE concat(concat('%',#{query.biddingName}),'%')
+        </if>
+        <if test="query.biddingNo != null and query.biddingNo != ''">
+            AND bm.bidding_no LIKE concat(concat('%',#{query.biddingNo}),'%')
+        </if>
+        <if test="query.biddingType != null and query.biddingType != ''">
+            AND bm.bidding_type = #{query.biddingType}
+        </if>
+        <if test="query.isContract != null and query.isContract != ''">
+            AND bm.is_contract = #{query.isContract}
+        </if>
+    order by bm.create_time desc
+    </select>
+
+    <select id="fetchDetailList" resultType="org.jeecg.modules.srm.entity.BiddingRecord">
+        SELECT
+            br.id,
+            br.bidding_id,
+            br.prod_id,
+            br.prod_name,
+            br.spe_type,
+            br.prod_code,
+            br.to_record_id,
+            br.qty,
+            br.unit_id,
+            br.lead_time,
+            prd.capacity,
+            ifnull(bqr.capacity,prd.capacity) as supp_capacity,
+            bqr.tax_rate,
+            bqr.price_tax as price,
+            bqr.lead_time as supp_lead_time,
+            bqr.comment,
+            bqr.id as record_id,
+            bqr.spe_type as sup_spe_type,
+            bqr.brand_name as sup_brand_name
+        FROM
+            bidding_record br
+            left join purchase_request_detail prd on br.to_record_id = prd.id
+            left join bidding_quote_record bqr on br.id = bqr.record_id and bqr.del_flag = '0' and bqr.supp_id = #{query.suppId}
+        WHERE
+            br.del_flag = '0'
+          and br.bidding_id = #{query.id}
+
+    </select>
+
+    <select id="getSuppInfo" resultType="org.jeecg.modules.srm.entity.BasSupplier">
+        SELECT
+            bs.id,
+            bs.name,
+            bs.address,
+            bs.telephone,
+            bs.fax,
+            bs.corporate,
+            bs.bank_branch,
+            bs.bank_account,
+            bsc.contacter
+        FROM
+            bidding_supplier bd
+            left join bas_supplier bs on bd.supplier_id = bs.id
+            left join bas_supplier_contact bsc on bs.id = bsc.supplier_id and bsc.is_default = '1'
+        where bd.del_flag = '0'
+          and bd.is_recommend = '1'
+          and bd.bidding_id = #{query.id}
+    </select>
+
+    <select id="getLeadTimeRank" resultType="string">
+        SELECT
+            t_rank
+        FROM
+            (
+                SELECT
+                    RANK() OVER ( ORDER BY MAX( lead_time ) ASC ) AS t_rank ,
+                    supp_id
+                FROM
+                    bidding_quote_record
+                WHERE
+                    bidding_id = #{id}
+                    and del_flag = '0'
+                GROUP BY bidding_id, supp_id
+            ) rk
+        WHERE
+            supp_id = #{suppId}
+    </select>
+
+    <select id="getPriceRank" resultType="string">
+        SELECT
+            t_rank
+        FROM
+            (
+                SELECT
+                    RANK() OVER ( ORDER BY round(sum(amount_tax_local),4) ) AS t_rank,
+                    supp_id
+                FROM
+                    bidding_quote_record
+                WHERE
+                    bidding_id = #{id}
+                   and del_flag = '0'
+                GROUP BY bidding_id, supp_id
+            ) rk
+        WHERE
+            supp_id = #{suppId}
+    </select>
+
+    <select id="fetchBarginList" resultType="org.jeecg.modules.srm.vo.BiddingRecordPage">
+        SELECT
+            brs.id as brs_id,
+            bm.id as bidding_id,
+            br.id as record_id,
+            brs.is_bargin,
+            bm.bidding_no,
+            bm.bidding_name,
+            bm.project_id,
+            br.prod_code,
+            br.prod_name,
+            brs.bidding_qty as qty,
+            bq.currency,
+            bq.tax_rate,
+            bq.trade_type,
+            bq.add_tax,
+            bq.amount,
+            bq.customs_tax,
+            bqr.price_tax,
+            bqr.amount_tax,
+            bqr.id as quote_record_id,
+            bbr.bg_price_tax,
+            bbr.id as bbr_id
+        FROM
+            bidding_record_supplier brs
+            inner join bidding_main bm on brs.bidding_id = bm.id
+            inner join bidding_record br on brs.record_id = br.id and br.del_flag = '0'
+            inner join bidding_quote_record bqr on br.id = bqr.record_id and bqr.del_flag = '0' and bqr.supp_id = brs.supplier_id
+            inner join bidding_quote bq on bqr.quote_id = bq.id and bq.del_flag = '0'
+            left join (
+                SELECT
+                    bbr.*
+                FROM
+                ( SELECT brs_id, max( create_time ) AS create_time FROM bidding_bargin_record bbr WHERE bbr.del_flag = '0' GROUP BY brs_id ) tmp
+                LEFT JOIN bidding_bargin_record bbr ON tmp.brs_id = bbr.brs_id
+                AND tmp.create_time = bbr.create_time
+            ) bbr on brs.id = bbr.brs_id
+        where brs.is_contract = '0'
+          and brs.is_bargin = '1'
+          and brs.del_flag = '0'
+          and brs.supplier_id = #{query.suppId}
+          <if test="query.biddingName != null and query.biddingName != ''">
+            AND bm.bidding_name LIKE concat(concat('%',#{query.biddingName}),'%')
+          </if>
+          <if test="query.biddingNo != null and query.biddingNo != ''">
+            AND bm.bidding_no LIKE concat(concat('%',#{query.biddingNo}),'%')
+          </if>
+    </select>
+</mapper>

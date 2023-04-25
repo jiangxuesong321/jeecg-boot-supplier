@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.srm.mapper.PurchasePayInoviceMapper">
+    <select id="queryPurPayInvoiceDetailByMainId" resultType="org.jeecg.modules.srm.entity.ContractObjectQty">
+        SELECT
+            co.id,
+            co.contract_id,
+            co.object_type,
+            co.prod_code,
+            co.prod_name,
+            co.contract_price,
+            co.contract_price_tax,
+            co.contract_amount,
+            co.contract_amount_tax,
+            co.contract_tax_rate,
+            co.prod_brand,
+            co.prod_spec_type,
+            co.exchange_rate,
+            co.contract_price_local,
+            co.contract_price_tax_local,
+            co.contract_amount_local,
+            co.contract_amount_tax_local,
+            co.require_date,
+            co.plan_delivery_date,
+            co.comment,
+            co.sort,
+            co.tenant_id,
+            co.del_flag,
+            co.create_user,
+            co.update_user,
+            co.create_time,
+            co.update_time,
+            co.to_record_id,
+            co.capacity,
+            co.unit_id,
+            co.pay_rate,
+            co.invoice_qty,
+            ppad.bill_detail_id,
+            ppad.qty,
+            ppad.invoice_tax,
+            ppad.invoice_rate
+        FROM
+            purchase_pay_invoice_detail ppad
+            left join contract_object_qty co on ppad.bill_detail_id = co.id
+        WHERE
+            ppad.invoice_id = #{id}
+          and ppad.del_flag = '0'
+    </select>
+
+
+    <select id="fetchInvoiceList" resultType="org.jeecg.modules.srm.entity.PurchasePayInovice">
+        select
+           ppi.*,
+           ifnull(pai.invoice_amount,0) as apply_invoice_amount,
+           ifnull(pai.invoice_amount_tax,0)  as apply_invoice_amount_tax,
+           ifnull(pai.invoice_amount_local,0) as apply_invoice_amount_local,
+           ifnull(pai.invoice_amount_tax_local,0) as apply_invoice_amount_tax_local
+        from purchase_pay_inovice ppi
+        left join purchase_apply_invoice pai on ppi.id = pai.invoice_id and pai.apply_id = #{query.applyId}
+        where ppi.del_flag = '0'
+        and ppi.supplier_id = #{query.supplierId}
+        and ppi.contract_id = #{query.contractId}
+        and ppi.is_used = '0'
+    </select>
+</mapper>
