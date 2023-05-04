@@ -1,11 +1,13 @@
 package org.jeecg.modules.srm.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.sap.conn.jco.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.constant.CommonConstant;
@@ -13,6 +15,10 @@ import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.modules.srm.entity.*;
 import org.jeecg.modules.srm.mapper.PurchasePayInoviceMapper;
 import org.jeecg.modules.srm.service.*;
+import org.jeecg.modules.system.entity.PurchaseOrderMain;
+import org.jeecg.modules.system.mapper.PurchaseOrderMainMapper;
+import org.jeecg.modules.system.model.SapConn;
+import org.jeecg.modules.system.util.SAPConnUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +42,10 @@ public class PurchasePayInoviceServiceImpl extends ServiceImpl<PurchasePayInovic
     private IContractBaseService iContractBaseService;
     @Autowired
     private IPurchaseApplyInvoiceService iPurchaseApplyInvoiceService;
+
+    @Autowired
+    private PurchaseOrderMainMapper purchaseOrderMainMapper;
+
     /**
      * 发票登记
      * @param purchasePayInovice
@@ -91,6 +101,58 @@ public class PurchasePayInoviceServiceImpl extends ServiceImpl<PurchasePayInovic
                 co.setInvoiceRate(co.getInvoiceRate().add(invoiceRate));
             }
             iContractObjectQtyService.updateBatchById(objList);
+        }
+//        invoceToSap(purchasePayInovice);
+
+    }
+
+    public void invoceToSap(PurchasePayInovice purchasePayInovice){
+        //往sap推送
+        LambdaQueryWrapper<PurchaseOrderMain> query = new LambdaQueryWrapper<>();
+        query.eq(PurchaseOrderMain::getContactId, purchasePayInovice.getContractId());
+        PurchaseOrderMain purchaseOrderMain = purchaseOrderMainMapper.selectOne(query);
+
+        try{
+            String JCO_HOST = "192.168.1.20";
+            String JCO_SYNSNR = "00";
+            String JCO_CLIENT = "200";
+            String JCO_USER = "DLW_PDA";
+            String JCO_PASSWD = "Delaware.001";
+            String JCO_LANG = "ZH";
+            String JCO_POOL_CAPACITY = "30";
+            String JCO_PEAK_LIMIT = "100";
+            String JCO_SAPROUTER = "/H/112.103.135.101/S/3299/W/Dch2017";
+
+            SapConn con = new SapConn(JCO_HOST, JCO_SYNSNR, JCO_CLIENT, JCO_USER, JCO_PASSWD, JCO_LANG, JCO_POOL_CAPACITY, JCO_PEAK_LIMIT, JCO_SAPROUTER);
+            JCoDestination jCoDestination = SAPConnUtil.connect(con);
+
+            // 获取调用 RFC 函数对象
+            JCoFunction func = jCoDestination.getRepository().getFunction("ZMM_SRM_MIRO_DEMO");
+            // 配置传入参数
+            JCoParameterList importParameterList = func.getImportParameterList();
+            JCoStructure sc = importParameterList.getStructure("IS_HEAD");
+//            sc.setValue("XBLNR", purchasePayInovice.getContractNumber());
+
+            JCoTable item_table =  importParameterList.getTable("T_I_ITEM");
+            item_table.appendRow();
+            item_table.setValue("EBELN",purchaseOrderMain.getSapPo());
+            item_table.setValue("RMWWR",purchasePayInovice.getInvoiceAmount());
+
+            // 调用并获取返回值
+            func.execute(jCoDestination);
+            // 获取 内表 - ET_MARA
+            JCoTable maraTable = func.getTableParameterList().getTable("ET_OUTPUT");
+//            String po_sap = "";
+//            for (int i = 0; i < maraTable.getNumRows(); i++) {
+//                po_sap = maraTable.getString("EBELN");
+//                break;
+//            }
+            if (StringUtils.isNotEmpty(purchasePayInovice.getContractNumber())){
+                purchaseOrderMain.setContractNumber(purchasePayInovice.getContractNumber());
+                purchaseOrderMainMapper.updateById(purchaseOrderMain);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

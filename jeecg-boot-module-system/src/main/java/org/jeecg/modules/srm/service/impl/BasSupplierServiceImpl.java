@@ -94,6 +94,7 @@ public class BasSupplierServiceImpl extends ServiceImpl<BasSupplierMapper, BasSu
 		if("2".equals(basSupplier.getStatus())){
 			basSupplier.setStatus("0");
 		}
+		basSupplier.setStatus("0");
 		this.updateById(basSupplier);
 
 		//1.先删除子表数据

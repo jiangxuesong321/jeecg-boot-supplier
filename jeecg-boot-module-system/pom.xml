@@ -31,6 +31,13 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.sapjco3</groupId>
+			<artifactId>sapjco</artifactId>
+			<version>3.0</version>
+			<scope>system</scope>
+			<systemPath>${pom.basedir}/src/main/resources/lib/sapjco3.jar</systemPath>
+		</dependency>
+		<dependency>
 			<groupId>org.jeecgframework.boot</groupId>
 			<artifactId>jeecg-system-local-api</artifactId>
 		</dependency>
