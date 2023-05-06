@@ -3,6 +3,7 @@ package org.jeecg.modules.srm.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.constant.CommonConstant;
@@ -58,8 +59,12 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 		//供应商
 		BasSupplier supp = iBasSupplierService.getById(suppId);
 		//项目
-		ProjBase projBase = iProjBaseService.getById(stkIoBill.getProjectId());
-
+		if (StringUtils.isNotEmpty(stkIoBill.getProjectId())) {
+			ProjBase projBase = iProjBaseService.getById(stkIoBill.getProjectId());
+			stkIoBill.setProjectName(projBase.getProjName());
+		}else{
+			stkIoBill.setProjectName("");
+		}
 
 		//发货单
 		stkIoBill.setId(id);
@@ -71,7 +76,7 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 		stkIoBill.setUpdateBy(loginUser.getUsername());
 		stkIoBill.setUpdateTime(nowTime);
 		stkIoBill.setDelFlag(CommonConstant.NO_READ_FLAG);
-		stkIoBill.setProjectName(projBase.getProjName());
+//		stkIoBill.setProjectName(projBase.getProjName());
 		stkIoBill.setSendStatus("0");
 		stkIoBill.setSendProcessId(String.valueOf(IdWorker.getId()));
 		//合同明细
@@ -125,14 +130,18 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 		//供应商
 		BasSupplier supp = iBasSupplierService.getById(suppId);
 		//项目
-		ProjBase projBase = iProjBaseService.getById(stkIoBill.getProjectId());
+		if (StringUtils.isNotEmpty(stkIoBill.getProjectId())) {
+			ProjBase projBase = iProjBaseService.getById(stkIoBill.getProjectId());
+			stkIoBill.setProjectName(projBase.getProjName());
+		}else{
+			stkIoBill.setProjectName("");
+		}
 
 		stkIoBill.setSuppId(suppId);
 		stkIoBill.setSuppName(supp.getName());
 		stkIoBill.setUpdateBy(loginUser.getUsername());
 		stkIoBill.setUpdateTime(nowTime);
 		stkIoBill.setDelFlag(CommonConstant.NO_READ_FLAG);
-		stkIoBill.setProjectName(projBase.getProjName());
 		stkIoBill.setSendStatus("0");
 		stkIoBill.setSendProcessId(String.valueOf(IdWorker.getId()));
 
@@ -174,7 +183,9 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 			sibe.setDelFlag(CommonConstant.NO_READ_FLAG);
 			sibe.setOrderId(stkIoBill.getContractId());
 			sibe.setOrderNumber(stkIoBill.getContractNumber());
+//			if (StringUtils.isNotEmpty(stkIoBill.getProjectId())) {
 			sibe.setProjectId(stkIoBill.getProjectId());
+//			}
 
 			ids.add(sibe.getOrderDetailId());
 

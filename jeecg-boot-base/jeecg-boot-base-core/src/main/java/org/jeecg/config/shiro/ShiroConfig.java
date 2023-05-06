@@ -158,7 +158,7 @@ public class ShiroConfig {
         //测试模块排除
         filterChainDefinitionMap.put("/test/seata/**", "anon");
 
-        filterChainDefinitionMap.put("/srm/purchasePayInovice/add", "anon");
+//        filterChainDefinitionMap.put("/srm/purchasePayInovice/add", "anon");
 
         // 添加自己的过滤器并且取名为jwt
         Map<String, Filter> filterMap = new HashMap<String, Filter>(1);
