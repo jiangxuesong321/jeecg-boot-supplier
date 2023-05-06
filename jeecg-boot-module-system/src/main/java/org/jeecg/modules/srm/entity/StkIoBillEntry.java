@@ -174,5 +174,7 @@ public class StkIoBillEntry implements Serializable {
     private String prodSpecType;
     @TableField(exist = false)
     private String sort;
+    @TableField(exist = false)
+    private BigDecimal contractQty;
 
 }

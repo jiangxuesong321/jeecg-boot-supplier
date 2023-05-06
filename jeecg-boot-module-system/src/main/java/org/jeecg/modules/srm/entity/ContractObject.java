@@ -246,5 +246,8 @@ public class ContractObject implements Serializable {
     private BigDecimal hasContractAmountTax;
     @TableField(exist = false)
     private BigDecimal payApplyAmount;
+    @TableField(exist = false)
+    private String payType;
+
 
 }

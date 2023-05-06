@@ -123,38 +123,38 @@ public class ContractBaseServiceImpl extends ServiceImpl<ContractBaseMapper, Con
 		updateWrapper1.eq("contract_id",contractBase.getId());
 		iContractTermsService.update(updateWrapper1);
 
-		UpdateWrapper<ContractObjectQty> updateWrapper2 = new UpdateWrapper<>();
-		updateWrapper2.set("del_flag","1");
-		updateWrapper2.eq("contract_id",contractBase.getId());
-		iContractObjectQtyService.update(updateWrapper2);
+//		UpdateWrapper<ContractObjectQty> updateWrapper2 = new UpdateWrapper<>();
+//		updateWrapper2.set("del_flag","1");
+//		updateWrapper2.eq("contract_id",contractBase.getId());
+//		iContractObjectQtyService.update(updateWrapper2);
 
-		List<ContractObjectQty> recordList = new ArrayList<>();
-		if(contractObjectList != null && contractObjectList.size() > 0){
-			for(ContractObject co : contractObjectList){
-				List<ContractObjectQty> qtyList = co.getChildList();
-				int i = 1;
-				for(ContractObjectQty rc : qtyList){
-					rc.setId(String.valueOf(IdWorker.getId()));
-					rc.setRecordId(co.getId());
-					rc.setSuppId(suppId);
-					rc.setContractAmount(rc.getContractPrice().multiply(rc.getQty()).setScale(2, BigDecimal.ROUND_HALF_UP));
-					rc.setContractAmountTax(rc.getContractPriceTax().multiply(rc.getQty()).setScale(2, BigDecimal.ROUND_HALF_UP));
-					rc.setContractAmountLocal(rc.getContractPriceLocal().multiply(rc.getQty()).setScale(2, BigDecimal.ROUND_HALF_UP));
-					rc.setContractAmountTaxLocal(rc.getContractPriceTaxLocal().multiply(rc.getQty()).setScale(2, BigDecimal.ROUND_HALF_UP));
-					rc.setSort(i);
-					rc.setDelFlag(CommonConstant.NO_READ_FLAG);
-					rc.setCreateTime(nowTime);
-					rc.setCreateUser(username);
-					rc.setUpdateTime(nowTime);
-					rc.setUpdateUser(username);
-					rc.setProdId(co.getProdId());
-					rc.setUnitId(co.getUnitId());
-					i++;
-					recordList.add(rc);
-				}
-			}
-			iContractObjectQtyService.saveOrUpdateBatch(recordList);
-		}
+//		List<ContractObjectQty> recordList = new ArrayList<>();
+//		if(contractObjectList != null && contractObjectList.size() > 0){
+//			for(ContractObject co : contractObjectList){
+//				List<ContractObjectQty> qtyList = co.getChildList();
+//				int i = 1;
+//				for(ContractObjectQty rc : qtyList){
+//					rc.setId(String.valueOf(IdWorker.getId()));
+//					rc.setRecordId(co.getId());
+//					rc.setSuppId(suppId);
+//					rc.setContractAmount(rc.getContractPrice().multiply(rc.getQty()).setScale(2, BigDecimal.ROUND_HALF_UP));
+//					rc.setContractAmountTax(rc.getContractPriceTax().multiply(rc.getQty()).setScale(2, BigDecimal.ROUND_HALF_UP));
+//					rc.setContractAmountLocal(rc.getContractPriceLocal().multiply(rc.getQty()).setScale(2, BigDecimal.ROUND_HALF_UP));
+//					rc.setContractAmountTaxLocal(rc.getContractPriceTaxLocal().multiply(rc.getQty()).setScale(2, BigDecimal.ROUND_HALF_UP));
+//					rc.setSort(i);
+//					rc.setDelFlag(CommonConstant.NO_READ_FLAG);
+//					rc.setCreateTime(nowTime);
+//					rc.setCreateUser(username);
+//					rc.setUpdateTime(nowTime);
+//					rc.setUpdateUser(username);
+//					rc.setProdId(co.getProdId());
+//					rc.setUnitId(co.getUnitId());
+//					i++;
+//					recordList.add(rc);
+//				}
+//			}
+//			iContractObjectQtyService.saveOrUpdateBatch(recordList);
+//		}
 
 
 		if(contractPayStepList!=null && contractPayStepList.size()>0) {

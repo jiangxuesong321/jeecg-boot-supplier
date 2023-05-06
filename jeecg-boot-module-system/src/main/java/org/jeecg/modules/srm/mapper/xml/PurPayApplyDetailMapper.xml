@@ -25,7 +25,8 @@
 		   ppad.plan_lead_time,
 		   ppad.contract_amount_tax,
 		   ppad.contract_amount_tax as pay_apply_amount,
-		   ppad.pay_rate
+		   ppad.pay_rate,
+		   ppad.pay_type
 		FROM
 		     pur_pay_apply_detail ppad
 			 left join contract_object_qty co on ppad.bill_detail_id = co.id

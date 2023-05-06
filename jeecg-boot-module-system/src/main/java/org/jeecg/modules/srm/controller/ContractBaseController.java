@@ -97,7 +97,7 @@ public class ContractBaseController {
 		} else if("0".equals(contractBase.getIsTodo())) {
 			queryWrapper.lambda().in(ContractBase::getContractStatus, CommonConstant.STATUS_1);
 		}
-
+		queryWrapper.lambda().eq(ContractBase :: getDelFlag,CommonConstant.DEL_FLAG_0);
 		queryWrapper.lambda().eq(ContractBase :: getContractSecondPartyId,suppId);
 //		queryWrapper.lambda().isNull(ContractBase :: getMainId);
 		queryWrapper.lambda().and(i -> i.isNull(ContractBase::getMainId).or().eq(ContractBase::getIsSag, "1"));

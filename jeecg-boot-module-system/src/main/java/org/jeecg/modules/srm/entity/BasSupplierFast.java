@@ -89,4 +89,6 @@ public class BasSupplierFast implements Serializable {
     private List<String> areaList;
 
     private String type;
+
+    private String country;
 }

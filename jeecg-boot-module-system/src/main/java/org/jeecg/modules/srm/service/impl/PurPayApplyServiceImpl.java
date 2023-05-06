@@ -336,17 +336,20 @@ public class PurPayApplyServiceImpl extends ServiceImpl<PurPayApplyMapper, PurPa
 		for(PurPayApplyDetail ppad : detailList){
 			ids.add(ppad.getBillDetailId());
 		}
-		//付款比例还原
-		List<ContractObjectQty> coList = iContractObjectQtyService.listByIds(ids);
-		for (ContractObjectQty co : coList){
-			for(PurPayApplyDetail pd : detailList){
-				if(co.getId().equals(pd.getBillDetailId())){
-					co.setPayRate(co.getPayRate().subtract(pd.getContractAmountTax()));
-					break;
+		if(ids != null && ids.size() > 0){
+			//付款比例还原
+			List<ContractObjectQty> coList = iContractObjectQtyService.listByIds(ids);
+			for (ContractObjectQty co : coList){
+				for(PurPayApplyDetail pd : detailList){
+					if(co.getId().equals(pd.getBillDetailId())){
+						co.setPayRate(co.getPayRate().subtract(pd.getContractAmountTax()));
+						break;
+					}
 				}
 			}
+			iContractObjectQtyService.updateBatchById(coList);
 		}
-		iContractObjectQtyService.updateBatchById(coList);
+
 
 		UpdateWrapper<PurPayApply> updateWrapper = new UpdateWrapper<>();
 		updateWrapper.set("del_flag",CommonConstant.DEL_FLAG_1);

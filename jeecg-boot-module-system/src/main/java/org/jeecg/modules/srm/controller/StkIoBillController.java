@@ -278,11 +278,12 @@ public class StkIoBillController {
 	  */
 	 @RequestMapping(value = "/uploadAttachment", method = {RequestMethod.PUT,RequestMethod.POST})
 	 public Result<String> uploadAttachment(@RequestBody StkIoBill stkIoBill) {
-	 	if(StringUtils.isEmpty(stkIoBill.getStatus())){
-			stkIoBill.setStatus("0");
-			stkIoBill.setApproverId("prod_line");
-			stkIoBill.setStockIoType("0");
-		}
+//	 	if(StringUtils.isEmpty(stkIoBill.getStatus())){
+		stkIoBill.setStatus("0");
+		stkIoBill.setSendStatus("2");
+		stkIoBill.setApproverId("prod_line");
+		stkIoBill.setStockIoType("0");
+//		}
 	 	stkIoBillService.updateById(stkIoBill);
 	 	return Result.OK("编辑成功!");
 	 }

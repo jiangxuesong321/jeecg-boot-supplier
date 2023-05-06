@@ -218,6 +218,8 @@ public class StkIoBill implements Serializable {
 
     private String fastUserTel;
 
+    private String packAttachment;
+
     @TableField(exist = false)
     private List<StkIoBillEntry> stkIoBillEntryList;
 

@@ -57,9 +57,10 @@
            ifnull(pai.invoice_amount_tax_local,0) as apply_invoice_amount_tax_local
         from purchase_pay_inovice ppi
         left join purchase_apply_invoice pai on ppi.id = pai.invoice_id and pai.apply_id = #{query.applyId}
+        inner join contract_base cb on ppi.contract_id = cb.id
         where ppi.del_flag = '0'
         and ppi.supplier_id = #{query.supplierId}
-        and ppi.contract_id = #{query.contractId}
+        and (cb.id = #{query.contractId} or cb.main_id = #{query.contractId})
         and ppi.is_used = '0'
     </select>
 </mapper>

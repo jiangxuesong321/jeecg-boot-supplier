@@ -34,28 +34,60 @@
 
 	<select id="listByDetailList" resultType="org.jeecg.modules.srm.entity.ContractObject">
 		select
-		    co.*,
-			cb.contract_currency
+		co.id as id,
+		co.contract_id,
+		co.record_id,
+		co.supp_id,
+		co.object_type,
+		co.prod_code,
+		co.prod_name,
+		co.sort,
+		ifnull(co1.contract_price,co.contract_price) as contract_price,
+		ifnull(co1.contract_price_tax,co.contract_price_tax) as contract_price_tax,
+		ifnull(co1.contract_amount,co.contract_amount) as contract_amount,
+		ifnull(co1.contract_amount_tax,co.contract_amount_tax) as contract_amount_tax,
+		ifnull(co1.contract_tax_rate,co.contract_tax_rate) as contract_tax_rate,
+		ifnull(co1.prod_brand,co.prod_brand) as prod_brand,
+		ifnull(co1.prod_spec_type,co.prod_spec_type) as prod_spec_type,
+		co.exchange_rate,
+		ifnull(co1.contract_price_local,co.contract_price_local) as id,
+		ifnull(co1.contract_price_tax_local,co.contract_price_tax_local) as contract_price_tax_local,
+		ifnull(co1.contract_amount_local,co.contract_amount_local) as contract_amount_local,
+		ifnull(co1.contract_amount_tax_local,co.contract_amount_tax_local) as contract_amount_tax_local,
+		co.plan_delivery_date,
+		co.to_record_id,
+		co.qty,
+		co.capacity,
+		co.unit_id,
+		ifnull(co1.pay_rate,co.pay_rate) as pay_rate,
+		ifnull(co1.pay_qty,co.pay_qty) as pay_qty,
+		ifnull(co1.invoice_rate,co.invoice_rate) as invoice_rate,
+		ifnull(co1.invoice_qty,co.invoice_qty) as invoice_qty,
+		ifnull(co1.to_send_qty,co.to_send_qty) as to_send_qty,
+		co.prod_id,
+		co.to_send_qty,
+		cb.contract_currency
 		from
 		    contract_object_qty co
 			inner join contract_base cb on co.contract_id = cb.id
+			left join contract_object_qty co1 on co.id = co1.main_detail_id
 		where co.del_flag = '0'
 		and co.contract_id = #{query.contractId}
 		<if test="query.ptype == 'stk'">
 
 			<if test="query.id != null and query.id != ''">
-				and (co.to_send_qty = 0 or co.id in
+				and (co.qty > co.to_send_qty or ifnull(co1.id,co.id) in
 				<foreach collection="query.id.split(',')" item="item" open="(" close=")" separator="," >
 					#{item}
 				</foreach>
 				    )
 			</if>
 			<if test="query.id == null or query.id == ''">
-				and co.to_send_qty = 0
+				and co.qty > co.to_send_qty
 			</if>
 		</if>
 		<if test="query.ptype == 'invoice'">
-			and co.invoice_rate &lt; 100
+			and ifnull(co1.invoice_rate,co.invoice_rate) &lt; 100
 		</if>
 		<if test="query.prodCode != null and query.prodCode != ''">
 			AND co.prod_code LIKE concat(concat('%',#{query.prodCode}),'%')
@@ -64,7 +96,7 @@
 			AND co.prod_name LIKE concat(concat('%',#{query.prodName}),'%')
 		</if>
 		<if test="query.prodSpecType != null and query.prodSpecType != ''">
-			AND co.prod_spec_type LIKE concat(concat('%',#{query.prodSpecType}),'%')
+			AND ifnull(co1.prod_spec_type,co.prod_spec_type) LIKE concat(concat('%',#{query.prodSpecType}),'%')
 		</if>
 		<if test="query.sort != null and query.sort1 == null">
 			AND co.sort >= #{query.sort}

@@ -3,7 +3,6 @@ package org.jeecg.modules.srm.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.constant.CommonConstant;
@@ -59,12 +58,8 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 		//供应商
 		BasSupplier supp = iBasSupplierService.getById(suppId);
 		//项目
-		if (StringUtils.isNotEmpty(stkIoBill.getProjectId())) {
-			ProjBase projBase = iProjBaseService.getById(stkIoBill.getProjectId());
-			stkIoBill.setProjectName(projBase.getProjName());
-		}else{
-			stkIoBill.setProjectName("");
-		}
+//		ProjBase projBase = iProjBaseService.getById(stkIoBill.getProjectId());
+
 
 		//发货单
 		stkIoBill.setId(id);
@@ -82,8 +77,9 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 		//合同明细
 		List<String> ids = new ArrayList<>();
 
-		Date sendTime = stkIoBillEntryList.get(0).getSendTime();
+//		Date sendTime = stkIoBillEntryList.get(0).getSendTime();
 
+		List<ContractObjectQty> qtyList = new ArrayList<>();
 		//发货明细
 		for(StkIoBillEntry sibe : stkIoBillEntryList){
 			sibe.setId(String.valueOf(IdWorker.getId()));
@@ -99,25 +95,30 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 			sibe.setOrderNumber(stkIoBill.getContractNumber());
 			sibe.setProjectId(stkIoBill.getProjectId());
 
+			ContractObjectQty coq = iContractObjectQtyService.getById(sibe.getOrderDetailId());
+			coq.setToSendQty(coq.getToSendQty().add(sibe.getQty()));
+			qtyList.add(coq);
+
 			ids.add(sibe.getOrderDetailId());
 
-			long time1 = sibe.getSendTime().getTime();
-			long time2 = sendTime.getTime();
-			if(time1 > time2){
-				sendTime = sibe.getSendTime();
-			}
+//			long time1 = sibe.getSendTime().getTime();
+//			long time2 = sendTime.getTime();
+//			if(time1 > time2){
+//				sendTime = sibe.getSendTime();
+//			}
 
 		}
 		iStkIoBillEntryService.saveBatch(stkIoBillEntryList);
+		iContractObjectQtyService.updateBatchById(qtyList);
 
 		//获取明细最晚发货时间
-		stkIoBill.setSendTime(sendTime);
+//		stkIoBill.setSendTime(sendTime);
 		this.save(stkIoBill);
 
-		UpdateWrapper<ContractObjectQty> updateWrapper = new UpdateWrapper<>();
-		updateWrapper.set("to_send_qty","1");
-		updateWrapper.in("id",ids);
-		iContractObjectQtyService.update(updateWrapper);
+//		UpdateWrapper<ContractObjectQty> updateWrapper = new UpdateWrapper<>();
+//		updateWrapper.set("to_send_qty","1");
+//		updateWrapper.in("id",ids);
+//		iContractObjectQtyService.update(updateWrapper);
 	}
 
 	@Override
@@ -130,18 +131,14 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 		//供应商
 		BasSupplier supp = iBasSupplierService.getById(suppId);
 		//项目
-		if (StringUtils.isNotEmpty(stkIoBill.getProjectId())) {
-			ProjBase projBase = iProjBaseService.getById(stkIoBill.getProjectId());
-			stkIoBill.setProjectName(projBase.getProjName());
-		}else{
-			stkIoBill.setProjectName("");
-		}
+//		ProjBase projBase = iProjBaseService.getById(stkIoBill.getProjectId());
 
 		stkIoBill.setSuppId(suppId);
 		stkIoBill.setSuppName(supp.getName());
 		stkIoBill.setUpdateBy(loginUser.getUsername());
 		stkIoBill.setUpdateTime(nowTime);
 		stkIoBill.setDelFlag(CommonConstant.NO_READ_FLAG);
+//		stkIoBill.setProjectName(projBase.getProjName());
 		stkIoBill.setSendStatus("0");
 		stkIoBill.setSendProcessId(String.valueOf(IdWorker.getId()));
 
@@ -154,10 +151,11 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 		for(StkIoBillEntry old : oldList){
 			oldIds.add(old.getOrderDetailId());
 		}
-		UpdateWrapper<ContractObjectQty> updateWrapper1 = new UpdateWrapper<>();
-		updateWrapper1.set("to_send_qty","0");
-		updateWrapper1.in("id",oldIds);
-		iContractObjectQtyService.update(updateWrapper1);
+//		UpdateWrapper<ContractObjectQty> updateWrapper1 = new UpdateWrapper<>();
+//		updateWrapper1.set("to_send_qty","0");
+//		updateWrapper1.in("id",oldIds);
+//		iContractObjectQtyService.update(updateWrapper1);
+		List<ContractObjectQty> qtyList = iContractObjectQtyService.listByIds(oldIds);
 
 
 		UpdateWrapper<StkIoBillEntry> updateWrapper = new UpdateWrapper<>();
@@ -169,7 +167,7 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 		List<String> ids = new ArrayList<>();
 		//发货明细
 
-		Date sendTime = stkIoBillEntryList.get(0).getSendTime();
+//		Date sendTime = stkIoBillEntryList.get(0).getSendTime();
 
 		for(StkIoBillEntry sibe : stkIoBillEntryList){
 			sibe.setId(String.valueOf(IdWorker.getId()));
@@ -183,26 +181,33 @@ public class StkIoBillServiceImpl extends ServiceImpl<StkIoBillMapper, StkIoBill
 			sibe.setDelFlag(CommonConstant.NO_READ_FLAG);
 			sibe.setOrderId(stkIoBill.getContractId());
 			sibe.setOrderNumber(stkIoBill.getContractNumber());
-//			if (StringUtils.isNotEmpty(stkIoBill.getProjectId())) {
 			sibe.setProjectId(stkIoBill.getProjectId());
-//			}
 
 			ids.add(sibe.getOrderDetailId());
 
-			long time1 = sibe.getSendTime().getTime();
-			long time2 = sendTime.getTime();
-			if(time1 > time2){
-				sendTime = sibe.getSendTime();
+//			long time1 = sibe.getSendTime().getTime();
+//			long time2 = sendTime.getTime();
+//			if(time1 > time2){
+//				sendTime = sibe.getSendTime();
+//			}
+
+			for(ContractObjectQty coq : qtyList){
+				if(sibe.getOrderDetailId().equals(coq.getId())){
+					coq.setToSendQty(coq.getToSendQty().add(sibe.getQty()));
+					break;
+				}
 			}
 		}
-		stkIoBill.setSendTime(sendTime);
+//		stkIoBill.setSendTime(sendTime);
 		this.updateById(stkIoBill);
 		iStkIoBillEntryService.saveBatch(stkIoBillEntryList);
 
-		updateWrapper1 = new UpdateWrapper<>();
-		updateWrapper1.set("to_send_qty","1");
-		updateWrapper1.in("id",ids);
-		iContractObjectQtyService.update(updateWrapper1);
+		iContractObjectQtyService.updateBatchById(qtyList);
+
+//		updateWrapper1 = new UpdateWrapper<>();
+//		updateWrapper1.set("to_send_qty","1");
+//		updateWrapper1.in("id",ids);
+//		iContractObjectQtyService.update(updateWrapper1);
 	}
 
 	@Override

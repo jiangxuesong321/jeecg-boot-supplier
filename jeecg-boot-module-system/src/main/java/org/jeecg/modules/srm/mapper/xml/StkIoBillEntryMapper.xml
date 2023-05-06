@@ -19,7 +19,17 @@
 		    sibe.social_no,
 			sibe.send_time,
 			sibe.pack_no,
+			sibe.contract_price,
+			sibe.contract_amount,
+			sibe.contract_amount_tax,
+			sibe.contract_price_local,
+			sibe.contract_price_tax_local,
+			sibe.contract_amount_local,
+			sibe.contract_amount_tax_local,
+		    sibe.other_amount,
+		    sibe.other_amount_local,
 			coq.sort,
+			coq.qty as contract_qty,
 			co.prod_spec_type
 		FROM
 		     stk_io_bill_entry sibe
