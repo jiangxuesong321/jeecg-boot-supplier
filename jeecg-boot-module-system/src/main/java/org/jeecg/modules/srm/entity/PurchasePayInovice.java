@@ -168,4 +168,6 @@ public class PurchasePayInovice implements Serializable {
     private BigDecimal applyInvoiceAmountTaxLocal;
     @TableField(exist = false)
     private String contractNumber;
+
+    private String invoiceName;
 }

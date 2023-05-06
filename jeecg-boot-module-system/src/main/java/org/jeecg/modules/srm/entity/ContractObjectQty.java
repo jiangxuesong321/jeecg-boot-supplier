@@ -35,175 +35,175 @@ public class ContractObjectQty implements Serializable {
 	/**id*/
 	@TableId(type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "id")
-    private java.lang.String id;
+    private String id;
 	/**合同ID*/
 	@Excel(name = "合同ID", width = 15)
     @ApiModelProperty(value = "合同ID")
-    private java.lang.String contractId;
+    private String contractId;
     /**合同ID*/
     @Excel(name = "合同明细ID", width = 15)
     @ApiModelProperty(value = "合同明细ID")
-    private java.lang.String recordId;
+    private String recordId;
     /**供应商ID*/
     @Excel(name = "供应商ID", width = 15)
     @ApiModelProperty(value = "供应商ID")
-    private java.lang.String suppId;
+    private String suppId;
 	/**标的类型*/
 	@Excel(name = "标的类型", width = 15)
     @ApiModelProperty(value = "标的类型")
-    private java.lang.String objectType;
+    private String objectType;
 	/**设备编号*/
 	@Excel(name = "设备编号", width = 15)
     @ApiModelProperty(value = "设备编号")
-    private java.lang.String prodCode;
+    private String prodCode;
 	/**设备名称*/
 	@Excel(name = "设备名称", width = 15)
     @ApiModelProperty(value = "设备名称")
-    private java.lang.String prodName;
+    private String prodName;
 	/**合同未税单价原币*/
 	@Excel(name = "合同未税单价原币", width = 15)
     @ApiModelProperty(value = "合同未税单价原币")
-    private java.math.BigDecimal contractPrice;
+    private BigDecimal contractPrice;
 	/**合同含税单价原币*/
 	@Excel(name = "合同含税单价原币", width = 15)
     @ApiModelProperty(value = "合同含税单价原币")
-    private java.math.BigDecimal contractPriceTax;
+    private BigDecimal contractPriceTax;
 	/**合同总额未税原币*/
 	@Excel(name = "合同总额未税原币", width = 15)
     @ApiModelProperty(value = "合同总额未税原币")
-    private java.math.BigDecimal contractAmount;
+    private BigDecimal contractAmount;
 	/**合同总额含税原币*/
 	@Excel(name = "合同总额含税原币", width = 15)
     @ApiModelProperty(value = "合同总额含税原币")
-    private java.math.BigDecimal contractAmountTax;
+    private BigDecimal contractAmountTax;
 	/**税率*/
 	@Excel(name = "税率", width = 15)
     @ApiModelProperty(value = "税率")
-    private java.math.BigDecimal contractTaxRate;
+    private BigDecimal contractTaxRate;
 	/**设备品牌*/
 	@Excel(name = "设备品牌", width = 15)
     @ApiModelProperty(value = "设备品牌")
-    private java.lang.String prodBrand;
+    private String prodBrand;
 	/**设备规格型号*/
 	@Excel(name = "设备规格型号", width = 15)
     @ApiModelProperty(value = "设备规格型号")
-    private java.lang.String prodSpecType;
+    private String prodSpecType;
 	/**汇率*/
 	@Excel(name = "汇率", width = 15)
     @ApiModelProperty(value = "汇率")
-    private java.math.BigDecimal exchangeRate;
+    private BigDecimal exchangeRate;
 	/**合同未税单价本币*/
 	@Excel(name = "合同未税单价本币", width = 15)
     @ApiModelProperty(value = "合同未税单价本币")
-    private java.math.BigDecimal contractPriceLocal;
+    private BigDecimal contractPriceLocal;
 	/**合同含税单价本币*/
 	@Excel(name = "合同含税单价本币", width = 15)
     @ApiModelProperty(value = "合同含税单价本币")
-    private java.math.BigDecimal contractPriceTaxLocal;
+    private BigDecimal contractPriceTaxLocal;
 	/**合同总额未税本币*/
 	@Excel(name = "合同总额未税本币", width = 15)
     @ApiModelProperty(value = "合同总额未税本币")
-    private java.math.BigDecimal contractAmountLocal;
+    private BigDecimal contractAmountLocal;
 	/**合同总额含税本币*/
 	@Excel(name = "合同总额含税本币", width = 15)
     @ApiModelProperty(value = "合同总额含税本币")
-    private java.math.BigDecimal contractAmountTaxLocal;
+    private BigDecimal contractAmountTaxLocal;
 	/**需求日期*/
 	@Excel(name = "需求日期", width = 15, format = "yyyy-MM-dd")
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern="yyyy-MM-dd")
     @ApiModelProperty(value = "需求日期")
-    private java.util.Date requireDate;
+    private Date requireDate;
 	/**计划交期*/
 	@Excel(name = "计划交期", width = 15, format = "yyyy-MM-dd")
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern="yyyy-MM-dd")
     @ApiModelProperty(value = "计划交期")
-    private java.util.Date planDeliveryDate;
+    private Date planDeliveryDate;
 	/**备注*/
 	@Excel(name = "备注", width = 15)
     @ApiModelProperty(value = "备注")
-    private java.lang.String comment;
+    private String comment;
 	/**排序*/
 	@Excel(name = "排序", width = 15)
     @ApiModelProperty(value = "排序")
-    private java.lang.Integer sort;
+    private Integer sort;
 	/**租户ID*/
 	@Excel(name = "租户ID", width = 15)
     @ApiModelProperty(value = "租户ID")
-    private java.lang.String tenantId;
+    private String tenantId;
 	/**删除标志位*/
 	@Excel(name = "删除标志位", width = 15)
     @ApiModelProperty(value = "删除标志位")
-    private java.lang.String delFlag;
+    private String delFlag;
 	/**创建人*/
 	@Excel(name = "创建人", width = 15)
     @ApiModelProperty(value = "创建人")
-    private java.lang.String createUser;
+    private String createUser;
 	/**更新人*/
 	@Excel(name = "更新人", width = 15)
     @ApiModelProperty(value = "更新人")
-    private java.lang.String updateUser;
+    private String updateUser;
 	/**创建时间*/
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern="yyyy-MM-dd")
     @ApiModelProperty(value = "创建时间")
-    private java.util.Date createTime;
+    private Date createTime;
 	/**更新时间*/
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern="yyyy-MM-dd")
     @ApiModelProperty(value = "更新时间")
-    private java.util.Date updateTime;
+    private Date updateTime;
 	/**询报价明细ID*/
 	@Excel(name = "询报价明细ID", width = 15)
     @ApiModelProperty(value = "询报价明细ID")
-    private java.lang.String toRecordId;
+    private String toRecordId;
 	/**数量*/
 	@Excel(name = "数量", width = 15)
     @ApiModelProperty(value = "数量")
-    private java.math.BigDecimal qty;
+    private BigDecimal qty;
 	/**设备产能*/
 	@Excel(name = "设备产能", width = 15)
     @ApiModelProperty(value = "设备产能")
-    private java.lang.String capacity;
+    private String capacity;
 	/**单位*/
 	@Excel(name = "单位", width = 15)
     @ApiModelProperty(value = "单位")
     @Dict(dicCode = "unit")
-    private java.lang.String unitId;
+    private String unitId;
 	/**付款申请比例*/
 	@Excel(name = "付款申请比例", width = 15)
     @ApiModelProperty(value = "付款申请比例")
-    private java.math.BigDecimal payRate;
+    private BigDecimal payRate;
 	/**付款数量*/
 	@Excel(name = "付款数量", width = 15)
     @ApiModelProperty(value = "付款数量")
-    private java.math.BigDecimal payQty;
+    private BigDecimal payQty;
 	/**开票申请比例*/
 	@Excel(name = "开票申请比例", width = 15)
     @ApiModelProperty(value = "开票申请比例")
-    private java.math.BigDecimal invoiceRate;
+    private BigDecimal invoiceRate;
 	/**开票数量*/
 	@Excel(name = "开票数量", width = 15)
     @ApiModelProperty(value = "开票数量")
-    private java.math.BigDecimal invoiceQty;
+    private BigDecimal invoiceQty;
 	/**已发货数量*/
 	@Excel(name = "已发货数量", width = 15)
     @ApiModelProperty(value = "已发货数量")
-    private java.math.BigDecimal toSendQty;
+    private BigDecimal toSendQty;
 
     /**单价*/
     @TableField(exist = false)
-    private java.math.BigDecimal price;
+    private BigDecimal price;
     /**单价*/
     @TableField(exist = false)
-    private java.math.BigDecimal priceTax;
+    private BigDecimal priceTax;
     /**小计*/
     @TableField(exist = false)
-    private java.math.BigDecimal amount;
+    private BigDecimal amount;
     /**小计*/
     @TableField(exist = false)
-    private java.math.BigDecimal amountTax;
+    private BigDecimal amountTax;
     /*** 单价*/
     @TableField(exist = false)
     private BigDecimal priceLocal;
@@ -228,5 +228,8 @@ public class ContractObjectQty implements Serializable {
     private BigDecimal invoiceTax;
     /**产品ID**/
     private String prodId;
+
+    @TableField(exist = false)
+    private BigDecimal taxRate;
 
 }

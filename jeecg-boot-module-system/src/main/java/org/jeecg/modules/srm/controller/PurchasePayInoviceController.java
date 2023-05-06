@@ -87,18 +87,18 @@ public class PurchasePayInoviceController extends JeecgController<PurchasePayIno
 		queryWrapper.lambda().eq(PurchasePayInovice :: getSupplierId,suppId);
 		IPage<PurchasePayInovice> pageList = purchasePayInoviceService.page(page, queryWrapper);
 		//查询合同编码
-		List<PurchasePayInovice> ppiList = pageList.getRecords();
-		List<ContractBase> cbList = iContractBaseService.list(Wrappers.<ContractBase>query().lambda().
-				eq(ContractBase :: getDelFlag, CommonConstant.DEL_FLAG_0).
-				eq(ContractBase :: getContractSecondPartyId,suppId));
-		for(PurchasePayInovice ppi : ppiList){
-			for(ContractBase cb : cbList){
-				if(ppi.getContractId().equals(cb.getId())){
-					ppi.setContractNumber(cb.getContractNumber());
-					break;
-				}
-			}
-		}
+//		List<PurchasePayInovice> ppiList = pageList.getRecords();
+//		List<ContractBase> cbList = iContractBaseService.list(Wrappers.<ContractBase>query().lambda().
+//				eq(ContractBase :: getDelFlag, CommonConstant.DEL_FLAG_0).
+//				eq(ContractBase :: getContractSecondPartyId,suppId));
+//		for(PurchasePayInovice ppi : ppiList){
+//			for(ContractBase cb : cbList){
+//				if(ppi.getContractId().equals(cb.getId())){
+//					ppi.setContractNumber(cb.getContractNumber());
+//					break;
+//				}
+//			}
+//		}
 
 		return Result.OK(pageList);
 	}

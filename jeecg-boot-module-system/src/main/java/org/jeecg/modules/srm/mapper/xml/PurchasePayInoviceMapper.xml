@@ -3,45 +3,32 @@
 <mapper namespace="org.jeecg.modules.srm.mapper.PurchasePayInoviceMapper">
     <select id="queryPurPayInvoiceDetailByMainId" resultType="org.jeecg.modules.srm.entity.ContractObjectQty">
         SELECT
-            co.id,
-            co.contract_id,
-            co.object_type,
-            co.prod_code,
-            co.prod_name,
-            co.contract_price,
-            co.contract_price_tax,
-            co.contract_amount,
-            co.contract_amount_tax,
-            co.contract_tax_rate,
-            co.prod_brand,
-            co.prod_spec_type,
-            co.exchange_rate,
-            co.contract_price_local,
-            co.contract_price_tax_local,
-            co.contract_amount_local,
-            co.contract_amount_tax_local,
-            co.require_date,
-            co.plan_delivery_date,
-            co.comment,
-            co.sort,
-            co.tenant_id,
-            co.del_flag,
-            co.create_user,
-            co.update_user,
-            co.create_time,
-            co.update_time,
-            co.to_record_id,
-            co.capacity,
-            co.unit_id,
-            co.pay_rate,
-            co.invoice_qty,
+            sibe.id,
+            sibe.qty,
+            sibe.prod_code,
+            sibe.prod_name,
+            sibe.invoice_rate,
+            sibe.invoice_qty,
+            coq.prod_spec_type,
+            cb.contract_name,
+            cb.contract_number,
+            cb.contract_tax_rate,
+            coq.contract_price,
+            coq.contract_price_tax,
+            coq.contract_amount,
+            coq.contract_amount_tax,
+            coq.contract_amount_tax - coq.contract_amount as contract_tax,
+            cb.contract_tax_rate as tax_rate,
+            ppad.id,
             ppad.bill_detail_id,
             ppad.qty,
             ppad.invoice_tax,
             ppad.invoice_rate
         FROM
             purchase_pay_invoice_detail ppad
-            left join contract_object_qty co on ppad.bill_detail_id = co.id
+            inner join stk_io_bill_entry sibe on ppad.bill_detail_id = sibe.id
+            inner join contract_object_qty coq on sibe.order_detail_id = coq.id
+            inner join contract_base cb on coq.contract_id = cb.id
         WHERE
             ppad.invoice_id = #{id}
           and ppad.del_flag = '0'

@@ -36,6 +36,8 @@ public class PurchasePayInoviceServiceImpl extends ServiceImpl<PurchasePayInovic
     private IContractBaseService iContractBaseService;
     @Autowired
     private IPurchaseApplyInvoiceService iPurchaseApplyInvoiceService;
+    @Autowired
+    private IStkIoBillEntryService iStkIoBillEntryService;
     /**
      * 发票登记
      * @param purchasePayInovice
@@ -107,55 +109,44 @@ public class PurchasePayInoviceServiceImpl extends ServiceImpl<PurchasePayInovic
         String suppId = loginUser.getSupplierId();
         Date nowTime = new Date();
 
-        ContractBase cb = iContractBaseService.getById(purchasePayInovice.getContractId());
+//        ContractBase cb = iContractBaseService.getById(purchasePayInovice.getContractId());
 
         purchasePayInovice.setUpdateTime(nowTime);
         purchasePayInovice.setUpdateBy(username);
         purchasePayInovice.setSupplierId(suppId);
         purchasePayInovice.setSupplierName(realname);
         purchasePayInovice.setStatus("1");
-        purchasePayInovice.setExchangeRate(cb.getContractExchangeRate());
+//        purchasePayInovice.setExchangeRate(cb.getContractExchangeRate());
         this.saveOrUpdate(purchasePayInovice);
 
-        //删除明细
-        List<PurchasePayInvoiceDetail> existList = iPurchasePayInvoiceDetailService.list(Wrappers.<PurchasePayInvoiceDetail>query().lambda().
-                eq(PurchasePayInvoiceDetail :: getInvoiceId,purchasePayInovice.getId()).
-                eq(PurchasePayInvoiceDetail :: getDelFlag,CommonConstant.DEL_FLAG_0));
-        Map<String,BigDecimal> exist = new HashMap<>();
-        for(PurchasePayInvoiceDetail pd : existList){
-            pd.setDelFlag(CommonConstant.HAS_READ_FLAG);
-
-            exist.put(pd.getBillDetailId(),pd.getInvoiceRate());
-        }
-        iPurchasePayInvoiceDetailService.updateBatchById(existList);
+//        //删除明细
+//        List<PurchasePayInvoiceDetail> existList = iPurchasePayInvoiceDetailService.list(Wrappers.<PurchasePayInvoiceDetail>query().lambda().
+//                eq(PurchasePayInvoiceDetail :: getInvoiceId,purchasePayInovice.getId()).
+//                eq(PurchasePayInvoiceDetail :: getDelFlag,CommonConstant.DEL_FLAG_0));
+//        Map<String,BigDecimal> exist = new HashMap<>();
+//        for(PurchasePayInvoiceDetail pd : existList){
+//            pd.setDelFlag(CommonConstant.HAS_READ_FLAG);
+//
+//            exist.put(pd.getBillDetailId(),pd.getInvoiceRate());
+//        }
+//        iPurchasePayInvoiceDetailService.updateBatchById(existList);
 
         List<PurchasePayInvoiceDetail> detailList = purchasePayInovice.getDetailList();
+        List<StkIoBillEntry> goods = new ArrayList<>();
         List<String> recordIds = new ArrayList<>();
         Map<String, BigDecimal> map = new HashMap<>();
         for(PurchasePayInvoiceDetail pd : detailList){
-            pd.setId(String.valueOf(IdWorker.getId()));
-            pd.setInvoiceId(purchasePayInovice.getId());
-            pd.setCreateTime(nowTime);
-            pd.setCreateBy(username);
             pd.setUpdateTime(nowTime);
             pd.setUpdateBy(username);
             pd.setDelFlag(CommonConstant.NO_READ_FLAG);
 
-            map.put(pd.getBillDetailId(),pd.getInvoiceRate());
-            recordIds.add(pd.getBillDetailId());
+            StkIoBillEntry sibe = iStkIoBillEntryService.getById(pd.getBillDetailId());
+            sibe.setInvoiceRate(sibe.getInvoiceRate().add(pd.getInvoiceRate()));
+            goods.add(sibe);
         }
         iPurchasePayInvoiceDetailService.saveOrUpdateBatch(detailList);
+        iStkIoBillEntryService.updateBatchById(goods);
 
-        //更新付款比例
-        if(recordIds != null && recordIds.size() > 0){
-            List<ContractObjectQty> objList = iContractObjectQtyService.listByIds(recordIds);
-            for(ContractObjectQty co : objList){
-                BigDecimal invoiceRate = map.get(co.getId());
-                BigDecimal existRate = exist.get(co.getId()) == null ? BigDecimal.ZERO : exist.get(co.getId());
-                co.setInvoiceRate(co.getInvoiceRate().add(invoiceRate).subtract(existRate));
-            }
-            iContractObjectQtyService.updateBatchById(objList);
-        }
     }
 
     /**
